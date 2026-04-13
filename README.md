@@ -5,7 +5,7 @@
 [![Open VSX](https://img.shields.io/open-vsx/v/alama777/antigravity-mcp-experimental?color=purple&logo=visualstudiocode)](https://open-vsx.org/extension/alama777/antigravity-mcp-experimental)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/alama777/antigravity-mcp-experimental?color=purple)](https://open-vsx.org/extension/alama777/antigravity-mcp-experimental)
 
-> An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity environment by adding an MCP tool to spawn new agents (launch new chats).
+> An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity IDE by adding an MCP tool to spawn new agents (launch new chats).
 
 > 📚 **Note:** For the most up-to-date instructions and documentation, always refer to the [GitHub Repository](https://github.com/alama777/antigravity-mcp-experimental).
 
