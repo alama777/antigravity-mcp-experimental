@@ -5,5 +5,3 @@ out/
 *.log
 .DS_Store
 .vscode/
-builds/
-*.vsix
