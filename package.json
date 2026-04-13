@@ -1,0 +1,79 @@
+{
+  "name": "antigravity-mcp-experimental",
+  "displayName": "Antigravity MCP Server (Experimental)",
+  "description": "An experimental built-in MCP server for Antigravity AI interactions over HTTP SSE.",
+  "version": "0.0.1",
+  "publisher": "lama777",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your_username/antigravity-mcp-experimental.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "antigravity-mcp.startServer",
+        "title": "Antigravity MCP: Start Server"
+      },
+      {
+        "command": "antigravity-mcp.stopServer",
+        "title": "Antigravity MCP: Stop Server"
+      }
+    ],
+    "configuration": {
+      "title": "Antigravity MCP Server",
+      "properties": {
+        "antigravity-mcp.port": {
+          "type": "number",
+          "default": 3033,
+          "description": "Port on which the HTTP SSE server runs."
+        },
+        "antigravity-mcp.host": {
+          "type": "string",
+          "default": "localhost",
+          "description": "Host on which the HTTP SSE server binds."
+        },
+        "antigravity-mcp.cdpHost": {
+          "type": "string",
+          "default": "localhost",
+          "description": "Host for the Antigravity CDP (Chrome DevTools Protocol)."
+        },
+        "antigravity-mcp.cdpPort": {
+          "type": "number",
+          "default": 9222,
+          "description": "Port for the Antigravity CDP."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.1.vsix",
+    "deploy": "node scripts/deploy.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "express": "^4.18.2",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.80.0",
+    "@types/ws": "^8.5.10",
+    "@vscode/vsce": "^3.7.1",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,12 @@
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.vscodeignore
+tsconfig.json
+package-lock.json
+*.md
+!README.md
+!README.ru.md
+scripts/**
+builds/**

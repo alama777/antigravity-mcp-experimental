@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+.mcp-config.json
+*.log
+.DS_Store
+.vscode/
+builds/
+*.vsix
