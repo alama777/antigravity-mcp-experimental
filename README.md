@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-alama777%2Fantigravity--mcp--experimental-blue?logo=github)](https://github.com/alama777/antigravity-mcp-experimental)
 [![Open VSX](https://img.shields.io/open-vsx/v/alama777/antigravity-mcp-experimental?color=blue&logo=visualstudiocode)](https://open-vsx.org/extension/alama777/antigravity-mcp-experimental)
+[![Open VSX Downloads](https://img.shields.io/open-vsx/dt/alama777/antigravity-mcp-experimental?color=green)](https://open-vsx.org/extension/alama777/antigravity-mcp-experimental)
 
 > An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity environment by adding an MCP tool to spawn new agents (launch new chats).
 
