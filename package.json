@@ -2,13 +2,13 @@
   "name": "antigravity-mcp-experimental",
   "displayName": "Antigravity MCP Server (Experimental)",
   "description": "An experimental built-in MCP server for Antigravity AI interactions over HTTP SSE.",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "icon": "images/icon.png",
   "publisher": "alama777",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your_username/antigravity-mcp-experimental.git"
+    "url": "https://github.com/alama777/antigravity-mcp-experimental.git"
   },
   "engines": {
     "vscode": "^1.80.0"
@@ -34,15 +34,15 @@
     "configuration": {
       "title": "Antigravity MCP Server",
       "properties": {
-        "antigravity-mcp.port": {
-          "type": "number",
-          "default": 3033,
-          "description": "Port on which the HTTP SSE server runs."
-        },
         "antigravity-mcp.host": {
           "type": "string",
           "default": "localhost",
-          "description": "Host on which the HTTP SSE server binds."
+          "description": "Host on which the HTTP MCP & dashboard server binds."
+        },
+        "antigravity-mcp.port": {
+          "type": "number",
+          "default": 3033,
+          "description": "Port on which the HTTP MCP & dashboard server runs."
         },
         "antigravity-mcp.cdpHost": {
           "type": "string",
@@ -52,7 +52,7 @@
         "antigravity-mcp.cdpPort": {
           "type": "number",
           "default": 9222,
-          "description": "Port for the Antigravity CDP."
+          "description": "Port for the Antigravity CDP (the debugging port exposed by the Antigravity IDE)."
         }
       }
     }
@@ -61,7 +61,7 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.1.vsix",
+    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.3.vsix",
     "deploy": "node scripts/deploy.js"
   },
   "dependencies": {

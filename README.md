@@ -1,10 +1,10 @@
 # Antigravity MCP Server (Experimental)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-alama777%2Fantigravity--mcp--experimental-blue?logo=github)](https://github.com/alama777/antigravity-mcp-experimental)
 
-> An experimental extension that bridges the Antigravity environment's internal chat interface with external AI agents via the Model Context Protocol (MCP).
+> An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity environment by adding an MCP tool to spawn new agents (launch new chats).
 
-**AI Agent Note:** This is the primary context document for the project. If you are an AI agent reading this, use this file as the main entry point to understand the codebase, architecture, and project constraints before making changes.
 
 > [!WARNING]
 > **Experimental Disclaimer:** This extension relies heavily on undocumented, internal features of the Antigravity IDE (like internal Webviews and CDP connections). Therefore, **it may stop working at any time following an Antigravity update.** It is highly experimental and **is NOT recommended for use in critical or production projects.**
@@ -13,19 +13,69 @@
 
 ## 🌟 Features
 
-This extension provides programmatic control over chats and AI agents directly within the Antigravity IDE without using heavy browser wrappers.
+This extension provides programmatic control over chats and AI agents directly within the Antigravity IDE, as well as from the outside by third-party software via the MCP protocol.
 
-* **CDP Scraper (DOM Extraction):** Connects to the editor's internal Chrome DevTools Protocol (CDP) via WebSockets (`ws`). It executes JavaScript (`Runtime.evaluate`) inside target `iframe` / `webview` panels to smoothly pull chat history in real-time. Built-in freeze protection included.
-* **Integrated Express Server & Dashboard:** Hosts an HTTP server for visual telemetry and monitoring at `http://localhost:3033`. Provides `/sse` and `/message` endpoints for clients.
-* **Full MCP Ecosystem Compatibility:** 
-  * **Resources:** Exposes chat data through MCP Resources (`antigravity://chat/active`).
-  * **Tools:**
-    * `get_active_chat`: Get ID, title, and message count of the active chat.
-    * `send_prompt`: Send a new prompt to the active chat/agent. *Note: this tool only queues the message and does NOT wait for the agent to finish replying.* Parameters: `prompt` (string).
-    * `start_new_chat`: Start a new chat session. *Note: this tool only queues the message and does NOT wait for the agent to finish replying.* Parameters: `prompt` (string, optional).
 * **Universal Stdio Proxy:** Transparently translates console communication (`stdin/stdout`) from MCP clients to the IDE via the `stdio-proxy.mjs` script.
+* **Integrated Express Server & Dashboard:** Hosts an HTTP server for visual debug telemetry and monitoring at `http://localhost:3033`. Provides `/sse` endpoint for MCP clients.
+* **CDP Scraper (DOM Extraction):** Connects to the editor's internal Chrome DevTools Protocol (CDP) via WebSockets (`ws`). It executes JavaScript (`Runtime.evaluate`) inside target `iframe` / `webview` panels to smoothly pull chat history in real-time. Built-in freeze protection included.
+
+### 🤖 Available MCP Tools
+
+The primary goal of this extension is to give AI agents the ability to programmatically interact with the IDE's chat system (e.g., spawning new sub-agents). Additionally, these tools remain accessible to external software via the proxy.
+
+| Tool Name | Description | Parameters |
+| :--- | :--- | :--- |
+| 💬 **`start_new_chat`** | Start a new chat with an optional starting prompt. Use this to delegate a task to a "new agent". <br>*(Note: This tool only queues the message and does NOT wait for the agent to finish replying).* | `prompt` (string, optional) |
+| 📨 **`send_prompt`** | Send a new prompt to the active (main/primary) chat. Returns a confirmation string. <br>*(Note: This tool only queues the message and does NOT wait for the agent to finish replying).* | `prompt` (string, required) |
+| 🔍 **`get_active_chat`** | Get ID, title, and message count of the active (main/primary) chat. Returns a JSON object with `id`, `title`, and `messageCount`. | *None* |
+
+> [!IMPORTANT]
+> **Execution Scope & Limitations:** These MCP tools interact **exclusively with the primary chat** located in the sidebar of the main Google Antigravity editor window. You can trigger these commands from anywhere (from a sub-agent's chat in Agent Manager, from Claude Desktop, etc.), but the actions will *always* apply to the main IDE chat interface.
+> 
+> **Out of Scope (What MCP CANNOT do):**
+> - It cannot read or interact with chats that are opened in separate windows via the Agent Manager.
+> - It cannot programmatically select or switch backwards/forwards between existing historical chats.
+
+> [!TIP]
+> **Background Execution:** When you trigger `start_new_chat`, the primary IDE view switches to the new session, but **your previous chat is NOT interrupted**. It will continue working and generating its response in the background! You can always return to it via the chat history dropdown, or open it using the Antigravity Agent Manager.
+
+> ⚙️ **Technical Requirement:** Writing to the chat using `start_new_chat` or `send_prompt` relies on internal IDE APIs and **does not require** the debug port. However, reading the chat status using `get_active_chat` relies on the CDP Scraper, meaning the IDE **must** be launched with the `--remote-debugging-port=9222` flag for this specific tool to function.
 
 > **💡 Note:** Ensure you have the Antigravity IDE configured correctly for this extension to interact with its interface.
+
+
+#### 💡 Real-World Use Cases (Patterns):
+
+1. **Task Delegation (Agent-to-Agent):** 
+   You ask your active Antigravity agent to implement a massive feature. The agent realizes the task is too complex for one context window, so it uses `start_new_chat` with the prompt *"Write the backend tests for..."* to autonomously spin up a new specialized sub-agent!
+
+2. **The "Librarian" Pattern (Offloading Research):** 
+   You are deep into a complex refactoring task, and your context window is full of source code. You suddenly need to know how a specific external API works. To avoid polluting your active context, your agent uses `start_new_chat` with the prompt: *"Search the web for Stripe API docs, figure out the routing, and save a summary to `stripe_tips.md`"*. The new agent acts as a librarian in the background!
+
+3. **Autonomous Agent Chains:** 
+   You can instruct your active agent to create complex pipelines. For example: *"Delegate a backend review to a new agent. Tell it to save the review results to `review.md`, and then instruct it to spawn ANOTHER new agent acting as a developer to immediately process those results."* This allows you to build self-orchestrating teams of agents!
+
+4. **Context Management & Migration:** 
+   An agent uses `get_active_chat` to verify its current session depth (message count). If the context is getting too long, you can instruct it: *"Summarize our current chat, and start a new chat with that summary"*. The agent generates the summary and executes `start_new_chat` to seamlessly migrate your workflow to a fresh session, avoiding token limits.
+
+5. **External Integration (Scripting):** 
+   You can still command the IDE from the outside! For example, a simple external monitoring bash script detects a server crash and uses `send_prompt` via the proxy to push the error log directly into your active Antigravity chat.
+
+6. **Continuous TDD Loop:** 
+   An external watcher script monitors your file system. Every time you save a file, it runs your test suite. If a test fails, the script automatically uses `send_prompt` to push the failing logs directly into your active chat: *"Your last save broke the tests. Here is the output: [...]. Please fix the code."* Your agent fixes it, driving a fully automated Test-Driven Development loop.
+
+7. **CI/CD Integration (Live Alerts):** 
+   While you are working locally, a GitHub Actions pipeline fails in the cloud. The CI/CD server pings your local proxy, using `send_prompt` to inject a message into your IDE: *"Pipeline #402 just failed on the Docker Build step. Here are the logs: [link]"*. Your active chat becomes a live notification center.
+
+8. **The "Silent Critic" (Background Code Review):**
+   An external demon checks your `get_active_chat` status periodically. If it notices you haven't typed anything in 5 minutes, it uses `start_new_chat` to spawn a background agent: *"Perform a complete code-review of all files changed today and leave TODO comments in the code."* It does this silently, without interrupting your main chat window.
+
+9. **The "Terminal to IDE" Pipeline:** 
+   Your local build script fails with a huge, cryptic stack trace. Instead of manually copying and pasting the logs into the IDE, you configure a shell alias (e.g., `fix-it`). Now, running `make build || fix-it` automatically catches the failing output and pipes it into `stdio-proxy.mjs`. The error is sent via `send_prompt` directly to your active chat, ready for the agent to fix!
+
+10. **The "Merge Conflict Negotiator":** 
+    You pull `main` and hit a terrifying merge conflict in a 2000-line file. Instead of resolving it in your primary chat (which is polluted with your current feature's business logic), you use `start_new_chat`: *"I have a huge git conflict in `api.ts`. Read the markers and safely combine the logic."* This isolates the complex, high-context task into a fresh session, preserving your main chat's mental model.
+
 
 ## 🚀 Usage
 
@@ -35,7 +85,7 @@ To start using this extension:
    ```bash
    antigravity --remote-debugging-port=9222
    ```
-2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) inside Antigravity and enter `Start Antigravity MCP Server` if it isn't set to start automatically.
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) inside Antigravity and enter `Antigravity MCP: Start Server` if it isn't set to start automatically.
 3. After starting the server, **AntigravityMCP** will become available in the MCP servers settings section inside Antigravity itself, allowing internal agents to use its tools.
 4. **Accessing from outside Antigravity:** To connect an external AI client (like Claude Desktop) to the IDE, use the provided proxy script:
    ```bash
@@ -53,10 +103,22 @@ You can customize the extension behavior by tweaking the following settings in y
 
 | Setting | Description | Default Value |
 | --- | --- | --- |
-| `antigravity-mcp.expressPort` | The port for the internal HTTP express server & dashboard | `3033` |
-| `antigravity-mcp.cdpPort` | The debugging port exposed by the Antigravity IDE | `9222` |
-| `antigravity-mcp.expressHost` | The host for the HTTP server | `"127.0.0.1"` |
-| `antigravity-mcp.cdpHost` | The host for the CDP connection | `"127.0.0.1"` |
+| `antigravity-mcp.host` | Host on which the HTTP MCP & dashboard server binds | `localhost` |
+| `antigravity-mcp.port` | Port on which the HTTP MCP & dashboard server runs | `3033` |
+| `antigravity-mcp.cdpHost` | Host for the Antigravity CDP (Chrome DevTools Protocol) | `localhost` |
+| `antigravity-mcp.cdpPort` | Port for the CDP connection (the debugging port exposed by the Antigravity IDE)| `9222` |
+
+> [!NOTE]
+> **Restart Required:** To ensure that your new settings are applied reliably, and **after installing a new release** of the extension, please **restart the Antigravity IDE**.
+
+> [!TIP]
+> **Troubleshooting Settings:** If the `AntigravityMCP` server shows errors in the IDE's MCP settings panel (which can happen after modifying settings or updating the extension), try toggling it **OFF and then ON again**. This forces the IDE to cleanly re-read the updated configuration. Additionally, you can always monitor detailed system messages and diagnostic logs from the extension by checking the IDE's **Output** panel (specifically, the **"Antigravity MCP"** channel).
+
+## 🗑️ Uninstalling
+
+To completely remove the extension and its capabilities:
+1. Uninstall the **Antigravity MCP Server (Experimental)** extension from the IDE's Extensions view.
+2. Remove the **AntigravityMCP** server entry from the *MCP Servers* settings section inside Antigravity.
 
 ## 🏰 Architecture & Data Flow
 
@@ -68,7 +130,7 @@ graph TD;
         A[IDE UI / Chat Webview] 
         B[Antigravity MCP Extension Backend]
         
-        A <==>|CDP via ws://127.0.0.1:9222| B
+        A <==>|CDP via ws://localhost:9222| B
     end
 
     subgraph HTTP / SSE Layer [HTTP & Dashboard Layer]
@@ -116,7 +178,7 @@ If you are modifying this codebase, pay close attention to the following aspects
 
 ## ⚠️ Known Issues
 
-- **Port 9222 Required:** The extension will not function if Antigravity is not run with the `--remote-debugging-port=9222` flag.
+- **Port 9222 Required for Reading:** Port 9222 is required for reading chat history. While you can send commands (`start_new_chat`, `send_prompt`) without it, full functionality (such as `get_active_chat`) requires starting Antigravity with the `--remote-debugging-port=9222` flag.
 
 ## 📝 Release Notes
 
