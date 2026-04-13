@@ -5,6 +5,8 @@
 
 > An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity environment by adding an MCP tool to spawn new agents (launch new chats).
 
+> 📚 **Note:** For the most up-to-date instructions and documentation, always refer to the [GitHub Repository](https://github.com/alama777/antigravity-mcp-experimental).
+
 
 > [!WARNING]
 > **Experimental Disclaimer:** This extension relies heavily on undocumented, internal features of the Antigravity IDE (like internal Webviews and CDP connections). Therefore, **it may stop working at any time following an Antigravity update.** It is highly experimental and **is NOT recommended for use in critical or production projects.**
@@ -81,10 +83,11 @@ The primary goal of this extension is to give AI agents the ability to programma
 
 To start using this extension:
 
-1. **Critical Step:** Launch the Antigravity editor with the remote debugging flag enabled:
+1. **Launch the Editor (Recommended):** If you want to use the `get_active_chat` tool (e.g. to let agents read chat history context), launch the Antigravity editor with the remote debugging flag enabled:
    ```bash
    antigravity --remote-debugging-port=9222
    ```
+   *(Note: You can skip this flag if you only intend to use `start_new_chat` or `send_prompt`).*
 2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) inside Antigravity and enter `Antigravity MCP: Start Server` if it isn't set to start automatically.
 3. After starting the server, **AntigravityMCP** will become available in the MCP servers settings section inside Antigravity itself, allowing internal agents to use its tools.
 4. **Accessing from outside Antigravity:** To connect an external AI client (like Claude Desktop) to the IDE, use the provided proxy script:
