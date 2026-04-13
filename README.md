@@ -27,10 +27,6 @@
 
 This extension provides programmatic control over chats and AI agents directly within the Antigravity IDE, as well as from the outside by third-party software via the MCP protocol.
 
-* **Universal Stdio Proxy:** Transparently translates console communication (`stdin/stdout`) from MCP clients to the IDE via the `stdio-proxy.mjs` script.
-* **Integrated Express Server & Dashboard:** Hosts an HTTP server for visual debug telemetry and monitoring at `http://localhost:3033`. Provides `/sse` endpoint for MCP clients.
-* **CDP Scraper (DOM Extraction):** Connects to the editor's internal Chrome DevTools Protocol (CDP) via WebSockets (`ws`). It executes JavaScript (`Runtime.evaluate`) inside target `iframe` / `webview` panels to smoothly pull chat history in real-time. Built-in freeze protection included.
-
 ### 🤖 Available MCP Tools
 
 The primary goal of this extension is to give AI agents the ability to programmatically interact with the IDE's chat system (e.g., spawning new sub-agents). Additionally, these tools remain accessible to external software via the proxy.
@@ -163,6 +159,12 @@ graph TD;
 3. Express serves the dashboard and keeps a persistent `/sse` connection open.
 4. An external AI agent executes `node bin/stdio-proxy.mjs`.
 5. The proxy connects to `/sse`, establishing a bidirectional channel (AI Agent <-> Proxy <-> Express <-> Extension Source Code <-> CDP <-> DOM).
+
+### Core Components
+
+* **Universal Stdio Proxy:** Transparently translates console communication (`stdin/stdout`) from MCP clients to the IDE via the `stdio-proxy.mjs` script.
+* **Integrated Express Server & Dashboard:** Hosts an HTTP server for visual debug telemetry and monitoring at `http://localhost:3033`. Provides `/sse` endpoint for MCP clients.
+* **CDP Scraper (DOM Extraction):** Connects to the editor's internal Chrome DevTools Protocol (CDP) via WebSockets (`ws`). It executes JavaScript (`Runtime.evaluate`) inside target `iframe` / `webview` panels to smoothly pull chat history in real-time. Built-in freeze protection included.
 
 ## 📂 Project Structure
 
