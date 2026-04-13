@@ -25,11 +25,11 @@
 
 ## 🌟 Features
 
-This extension provides programmatic control over chats and AI agents directly within the Antigravity IDE, as well as from the outside by third-party software via the MCP protocol.
+This extension connects the Antigravity IDE to the Model Context Protocol (MCP). It allows AI agents and external tools to programmatically read and write to your chat sessions. This makes it easy to automate workflows, delegate tasks, and spawn background agents.
 
 ### 🤖 Available MCP Tools
 
-The primary goal of this extension is to give AI agents the ability to programmatically interact with the IDE's chat system (e.g., spawning new sub-agents). Additionally, these tools remain accessible to external software via the proxy.
+To enable these capabilities, the extension provides the following tools:
 
 | Tool Name | Description | Parameters |
 | :--- | :--- | :--- |
