@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Repo](https://img.shields.io/badge/GitHub-alama777%2Fantigravity--mcp--experimental-blue?logo=github)](https://github.com/alama777/antigravity-mcp-experimental)
+[![Open VSX](https://img.shields.io/open-vsx/v/alama777/antigravity-mcp-experimental?color=blue&logo=visualstudiocode)](https://open-vsx.org/extension/alama777/antigravity-mcp-experimental)
 
 > An experimental extension that introduces a touch of multi-agent capabilities to the Google Antigravity environment by adding an MCP tool to spawn new agents (launch new chats).
 
@@ -12,6 +13,14 @@
 > **Experimental Disclaimer:** This extension relies heavily on undocumented, internal features of the Antigravity IDE (like internal Webviews and CDP connections). Therefore, **it may stop working at any time following an Antigravity update.** It is highly experimental and **is NOT recommended for use in critical or production projects.**
 
 ---
+
+### 📸 Overview
+
+![Agent Delegation Example](images/mcp_example.jpg)
+*Example of autonomous agent delegation*
+
+![Antigravity MCP Settings](images/mcp_settings.jpg)
+*Extension settings in Antigravity IDE*
 
 ## 🌟 Features
 
@@ -79,6 +88,10 @@ The primary goal of this extension is to give AI agents the ability to programma
     You pull `main` and hit a terrifying merge conflict in a 2000-line file. Instead of resolving it in your primary chat (which is polluted with your current feature's business logic), you use `start_new_chat`: *"I have a huge git conflict in `api.ts`. Read the markers and safely combine the logic."* This isolates the complex, high-context task into a fresh session, preserving your main chat's mental model.
 
 
+## 📥 Installation
+
+For complete step-by-step setup and installation instructions, please carefully refer to the [**INSTALL.md**](INSTALL.md) guide before proceeding.
+
 ## 🚀 Usage
 
 To start using this extension:
@@ -90,15 +103,12 @@ To start using this extension:
    *(Note: You can skip this flag if you only intend to use `start_new_chat` or `send_prompt`).*
 2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on Mac) inside Antigravity and enter `Antigravity MCP: Start Server` if it isn't set to start automatically.
 3. After starting the server, **AntigravityMCP** will become available in the MCP servers settings section inside Antigravity itself, allowing internal agents to use its tools.
-4. **Accessing from outside Antigravity:** To connect an external AI client (like Claude Desktop) to the IDE, use the provided proxy script:
-   ```bash
-   node /path/to/antigravity-mcp-experimental/stdio-proxy.mjs
-   ```
+4. **Accessing from outside Antigravity:** To connect an external AI client to the IDE, you must configure it to execute the proxy script (`node bin/stdio-proxy.mjs`). Please refer to **[INSTALL.md](INSTALL.md)** for detailed integration examples (e.g., Claude Desktop).
 
 ## ⚙️ Requirements
 
 * Antigravity IDE installed locally.
-* Node.js (for running the `stdio-proxy.mjs` script if you use an external client via Stdio).
+* Node.js (for running the `bin/stdio-proxy.mjs` script).
 
 ## 🛠 Extension Settings
 
@@ -116,12 +126,6 @@ You can customize the extension behavior by tweaking the following settings in y
 
 > [!TIP]
 > **Troubleshooting Settings:** If the `AntigravityMCP` server shows errors in the IDE's MCP settings panel (which can happen after modifying settings or updating the extension), try toggling it **OFF and then ON again**. This forces the IDE to cleanly re-read the updated configuration. Additionally, you can always monitor detailed system messages and diagnostic logs from the extension by checking the IDE's **Output** panel (specifically, the **"Antigravity MCP"** channel).
-
-## 🗑️ Uninstalling
-
-To completely remove the extension and its capabilities:
-1. Uninstall the **Antigravity MCP Server (Experimental)** extension from the IDE's Extensions view.
-2. Remove the **AntigravityMCP** server entry from the *MCP Servers* settings section inside Antigravity.
 
 ## 🏰 Architecture & Data Flow
 
@@ -156,7 +160,7 @@ graph TD;
 1. Upon IDE startup (`onStartupFinished`), `extension.ts` launches Express on port 3033.
 2. `cdpHelper.ts` periodically polls port 9222 (Antigravity's integrated debugger) and parses DOM changes.
 3. Express serves the dashboard and keeps a persistent `/sse` connection open.
-4. An external AI agent executes `node stdio-proxy.mjs`.
+4. An external AI agent executes `node bin/stdio-proxy.mjs`.
 5. The proxy connects to `/sse`, establishing a bidirectional channel (AI Agent <-> Proxy <-> Express <-> Extension Source Code <-> CDP <-> DOM).
 
 ## 📂 Project Structure
@@ -165,7 +169,7 @@ For AI developers and agents modifying this project, here is how the codebase is
 
 - `src/extension.ts` — **Entry point.** Registers extension commands (Start/Stop), initializes Express.js, sets up `SSEServerTransport` logic, and declares MCP Tools and Resources.
 - `src/cdpHelper.ts` — **Parsing Engine.** Handles low-level WebSocket calls to port 9222. Contains logic for traversing the resource tree and executing scripts within `webview` panels.
-- `stdio-proxy.mjs` — **Client Bridge.** A standalone Node.js script routing `stdin` into `POST /message` requests and echoing `SSE` to `stdout`.
+- `bin/stdio-proxy.mjs` — **Client Bridge.** A standalone Node.js script routing `stdin` into `POST /message` requests and echoing `SSE` to `stdout`.
 - `deploy.js` — **Deployment Script.** Compiles TypeScript into `dist/` and copies the build into Antigravity's extensions folder.
 - `INSTALL.md` — Setup instructions tailored for both humans and AI agents.
 
