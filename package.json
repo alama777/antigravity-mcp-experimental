@@ -2,7 +2,7 @@
   "name": "antigravity-mcp-experimental",
   "displayName": "Antigravity MCP Server (Experimental)",
   "description": "An experimental built-in MCP server for Antigravity AI interactions over HTTP SSE.",
-  "version": "0.0.4",
+  "version": "0.0.5-dev",
   "icon": "images/icon.png",
   "publisher": "alama777",
   "license": "MIT",
@@ -43,7 +43,7 @@
       "properties": {
         "antigravity-mcp.host": {
           "type": "string",
-          "default": "localhost",
+          "default": "127.0.0.1",
           "description": "Host on which the HTTP MCP & dashboard server binds."
         },
         "antigravity-mcp.port": {
@@ -53,7 +53,7 @@
         },
         "antigravity-mcp.cdpHost": {
           "type": "string",
-          "default": "localhost",
+          "default": "127.0.0.1",
           "description": "Host for the Antigravity CDP (Chrome DevTools Protocol)."
         },
         "antigravity-mcp.cdpPort": {
@@ -67,8 +67,9 @@
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
+    "test": "vitest run",
     "watch": "tsc -watch -p ./",
-    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.4.vsix",
+    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.5-dev.vsix",
     "deploy": "node scripts/deploy.js"
   },
   "dependencies": {
@@ -78,10 +79,13 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@types/node": "18.x",
+    "@types/node": "20.x",
+    "@types/supertest": "^7.2.0",
     "@types/vscode": "^1.80.0",
     "@types/ws": "^8.5.10",
     "@vscode/vsce": "^3.7.1",
-    "typescript": "^5.3.3"
+    "supertest": "^7.2.2",
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.4"
   }
 }

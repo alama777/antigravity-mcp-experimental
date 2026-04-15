@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import * as vscode from 'vscode';
 
-function cleanHtml(h: string): string {
+export function cleanHtml(h: string): string {
     if (!h) return "";
     return h.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
             .replace(/<[^>]+>/g, '\n')

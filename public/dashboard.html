@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Antigravity Bridge / MCP Server</title>
+    <style>
+        :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #f1f5f9; --green: #22c55e; --purple: #a855f7; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; align-items: center; padding: 2rem; margin: 0; min-height: 100vh; }
+        .container { width: 100%; max-width: 900px; }
+        .card { background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); margin-bottom: 1.2rem; border: 1px solid #334145; transition: transform 0.2s; }
+        .card:hover { transform: translateY(-2px); }
+        h1 { color: var(--accent); margin-top: 0; font-size: 1.4rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+        .rev { font-size: 0.8rem; background: #38bdf822; padding: 4px 10px; border-radius: 100px; color: var(--accent); font-weight: bold; }
+        textarea { width: 100%; border-radius: 6px; padding: 1rem; background: #0f172a; color: white; border: 1px solid #334155; height: 100px; margin: 1rem 0; box-sizing: border-box; font-family: inherit; font-size: 1rem; resize: vertical; }
+        .btn { border: none; padding: 0.8rem 1.2rem; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: all 0.2s; background: var(--accent); color: #0f172a; }
+        .btn:active { transform: scale(0.98); }
+        .btn-green { background: var(--green); color: #0f172a; }
+        .btn-purple { background: var(--purple); color: white; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem; }
+        .status-bar { display: flex; flex-direction: column; gap: 0.5rem; background: #011627; border: 1px solid #1e293b; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; }
+        .status-row { display: flex; justify-content: space-between; }
+        .status-item { opacity: 0.9; }
+        .status-val { font-weight: bold; color: var(--green); }
+        .focused-indicator { background: var(--green); color: #0f172a; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; }
+        .chat-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+        .chat-li { padding: 0.6rem 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+        .chat-li:last-child { border-bottom: none; }
+        .chat-info { flex: 1; }
+        .chat-id { opacity: 0.5; font-size: 0.7rem; font-family: monospace; }
+        .debug-panel { margin-top: 1rem; padding: 0.8rem; background: #ef444411; border: 1px solid #ef444433; border-radius: 6px; font-size: 0.75rem; color: #fca5a5; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { width: 90%; max-width: 800px; height: 85vh; display: flex; flex-direction: column; position: relative; margin: 0; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 0.8rem; margin-bottom: 1rem; }
+        .modal-header h2 { margin: 0; font-size: 1.2rem; color: var(--purple); }
+        .close-btn { background: none; border: none; color: var(--text); font-size: 1.5rem; cursor: pointer; padding: 0 0.5rem; }
+        .telemetry-pre { background: #011627; padding: 1rem; border-radius: 8px; border: 1px solid #1e293b; overflow: auto; flex: 1; font-size: 0.85rem; line-height: 1.4; color: #a5d6ff; margin: 0; font-family: 'Fira Code', monospace; }
+        .telemetry-btn { background: var(--purple); border: none; color: white; border-radius: 4px; padding: 3px 8px; font-size: 0.7rem; cursor: pointer; margin-left: 10px; font-weight: bold; }
+        .telemetry-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    </style>
+</head>
+<body>
+    <div class="container bridge-dashboard">
+        <div class="card">
+            <h1>🚤 Antigravity Bridge / MCP <span class="rev">REV 30</span></h1>
+            
+            <div class="status-bar">
+                <div class="status-row">
+                    <div class="status-item">Session ID: <span class="status-val" id="bridge-sid">Loading...</span></div>
+                    <div class="status-item">Messages: <span class="status-val" id="cnt">-</span></div>
+                </div>
+                <div class="status-item">Focused Session: <span class="status-val" id="stitle">-</span> <span id="focusBadge" class="focused-indicator" style="display:none;">LIVE FOCUS</span><button id="viewTelemetryBtn" class="telemetry-btn" style="display:none;" onclick="openTelemetry()">👁️ TELEMETRY</button></div>
+                <div id="debugInfo" class="debug-panel" style="display:none;"></div>
+            </div>
+
+            <textarea id="promptInput" placeholder="Enter task for the FOCUSED chat session..."></textarea>
+            
+            <div class="grid">
+                <button class="btn btn-purple" onclick="newChat()">🧹 Start New Chat</button>
+                <button class="btn" onclick="sendPrompt()">⚡ Send to Active Session</button>
+            </div>
+            <div class="grid">
+                <button class="btn btn-green" onclick="exec('/agent/accept')" style="grid-column: 1 / -1;">✅ Accept Plan</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; color:var(--accent); font-size:1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">Active Chats</h3>
+            <ul id="chatList" class="chat-list">
+                <li class="chat-li">Loading chats...</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0; color:var(--accent); font-size:1rem; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">Live Agent DOM (CDP)</h3>
+            <div id="domOutput" style="font-size:0.8rem; overflow-y:auto; max-height:400px; color:var(--text); background: #0c111c; padding: 1rem; border-radius: 8px; border: 1px solid #1e293b; display: flex; flex-direction: column; gap: 0.8rem;">Waiting for DOM stream...</div>
+        </div>
+        
+        <div id="telemetryModal" class="modal-overlay" onclick="if(event.target===this) closeTelemetry()">
+            <div class="card modal-content" onclick="event.stopPropagation()">
+                <div class="modal-header">
+                    <h2>📊 JSON Telemetry Data</h2>
+                    <button class="close-btn" onclick="closeTelemetry()">&times;</button>
+                </div>
+                <pre id="telemetryData" class="telemetry-pre">Loading...</pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastSid = null;
+        let currentTelemetry = null;
+        window.allChatsData = [];
+
+        function openTelemetry() {
+            const modal = document.getElementById('telemetryModal');
+            const dataEl = document.getElementById('telemetryData');
+            dataEl.textContent = currentTelemetry ? JSON.stringify(currentTelemetry, null, 2) : "No telemetry data provided inside diagnostics for this session.";
+            modal.classList.add('active');
+        }
+
+        function openTelemetryForChat(id) {
+            const chat = window.allChatsData.find(c => c.id === id);
+            if (chat && chat.telemetry) {
+                const modal = document.getElementById('telemetryModal');
+                const dataEl = document.getElementById('telemetryData');
+                dataEl.textContent = JSON.stringify(chat.telemetry, null, 2);
+                modal.classList.add('active');
+            }
+        }
+
+        function closeTelemetry() {
+            document.getElementById('telemetryModal').classList.remove('active');
+        }
+
+        async function newChat() {
+            try {
+                const r = await fetch('/new-chat', { method: 'POST' });
+                console.log(await r.json());
+            } catch (e) { alert(e.message); }
+        }
+
+        async function sendPrompt() {
+            const text = document.getElementById('promptInput').value;
+            try {
+                const r = await fetch('/agent/prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                console.log(await r.json());
+            } catch (e) { alert(e.message); }
+        }
+
+        async function exec(url) {
+            try {
+                const r = await fetch(url, { method: 'POST' });
+                console.log(await r.json());
+            } catch (e) { alert(e.message); }
+        }
+
+        function escapeHTML(str) {
+            if(!str) return "";
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
+        async function pollHistory() {
+            try {
+                const r = await fetch('/history');
+                const data = await r.json();
+                
+                const currentSid = data.current_session.id;
+                document.getElementById('bridge-sid').innerText = currentSid;
+                document.getElementById('cnt').innerText = data.current_session.messages;
+                document.getElementById('stitle').innerText = data.current_session.title;
+                
+                if (lastSid && lastSid !== currentSid) {
+                    document.getElementById('promptInput').value = '';
+                }
+                lastSid = currentSid;
+                
+                const badge = document.getElementById('focusBadge');
+                badge.style.display = data.current_session.is_focused ? 'inline-block' : 'none';
+
+                currentTelemetry = data.current_session.telemetry;
+                document.getElementById('viewTelemetryBtn').style.display = currentTelemetry ? 'inline-block' : 'none';
+
+                const debug = document.getElementById('debugInfo');
+                if ((data.sniffer_title || data.sniffer_sid) && !data.current_session.is_focused) {
+                    debug.style.display = 'block';
+                    debug.innerHTML = '<b>Mismatch Debug:</b><br>' + 
+                                     'Sniffer Title: "' + (data.sniffer_title || "None") + '"<br>' +
+                                     'Sniffer ID: "' + (data.sniffer_sid || "None") + '"<br>';
+                } else {
+                    debug.style.display = 'none';
+                }
+
+                window.allChatsData = data.all_chats || [];
+                const list = document.getElementById('chatList');
+                list.innerHTML = '';
+                data.all_chats.forEach(chat => {
+                    const li = document.createElement('li');
+                    li.className = 'chat-li';
+                    const focusStyle = chat.is_focused ? 'border-left: 4px solid var(--green); padding-left: 10px; background: #22c55e0a;' : '';
+                    li.style = focusStyle;
+                    li.innerHTML = '<div class="chat-info" style="display:flex; justify-content:space-between; align-items:center;">' + 
+                                   '<div><strong style="color:var(--green); min-width: 60px; display: inline-block;">' + chat.messages + ' msg</strong>' + 
+                                   '<span style="color:var(--text)">' + escapeHTML(chat.title) + '</span>' + 
+                                   (chat.is_focused ? ' <span class="focused-indicator">FOCUSED</span>' : '') +
+                                   '<br><span class="chat-id">' + chat.id + '</span></div>' +
+                                   '<button class="telemetry-btn" title="View Telemetry" onclick="openTelemetryForChat(\'' + chat.id + '\')">👁️</button></div>';
+                    list.appendChild(li);
+                });
+            } catch (e) { console.error("Poll Error:", e); }
+
+            try {
+                const rDom = await fetch('/agent/dom');
+                const domData = await rDom.json();
+                const outE = document.getElementById('domOutput');
+                const isNearBottom = outE.scrollHeight - outE.clientHeight <= outE.scrollTop + 50;
+
+                if (domData.error) {
+                    outE.innerHTML = "<div style='color:#ef4444'>CDP Error: " + escapeHTML(domData.error) + "</div>";
+                } else if (domData.parsed && domData.parsed.length > 0) {
+                    let lastPromptIdx = -1;
+                    for (let i = domData.parsed.length - 1; i >= 0; i--) {
+                        if (domData.parsed[i].type === 'prompt') {
+                            lastPromptIdx = i;
+                            break;
+                        }
+                    }
+                    
+                    const latestMsgs = lastPromptIdx !== -1 ? domData.parsed.slice(lastPromptIdx) : domData.parsed.slice(-2);
+                    
+                    let html = '<div style="text-align: center; margin-bottom: 0.5rem;"><span style="background: rgba(56, 189, 248, 0.1); color: var(--accent); padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; border: 1px solid rgba(56, 189, 248, 0.2);">✨ LATEST EXCHANGE</span></div>';
+                    
+                    latestMsgs.forEach(msg => {
+                        let safeText = escapeHTML(msg.text);
+
+                        if (msg.type === 'prompt') {
+                            html += '<div style="background:var(--card); align-self: flex-end; max-width: 85%; padding: 0.8rem 1rem; border-radius: 12px 12px 0 12px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">' +
+                                    '<div style="color:var(--accent); font-weight:bold; margin-bottom:6px; font-size:0.75rem; display:flex; align-items:center; gap:5px;"><span>👤</span> YOU</div>' + 
+                                    '<div style="margin:0; white-space:pre-wrap; font-family:inherit; line-height: 1.5; font-size: 0.9rem;">' + safeText + '</div></div>';
+                        } else {
+                            html += '<div style="background:linear-gradient(145deg, #011627 0%, #0a192f 100%); align-self: flex-start; max-width: 90%; padding: 0.8rem 1rem; border-radius: 12px 12px 12px 0; border: 1px solid rgba(34, 197, 94, 0.2); box-shadow: 0 4px 10px rgba(0,0,0,0.15);">' +
+                                    '<div style="color:var(--green); font-weight:bold; margin-bottom:6px; font-size:0.75rem; display:flex; align-items:center; gap:5px;"><span>🤖</span> AI ' + (msg.header && msg.header !== 'AI' ? '<span style="opacity:0.6; font-weight:normal; font-size:0.65rem;">(' + escapeHTML(msg.header) + ')</span>' : '') + '</div>' + 
+                                    '<div style="margin:0; white-space:pre-wrap; font-family:inherit; opacity:0.9; line-height:1.5; font-size: 0.9rem;">' + safeText + '</div></div>';
+                        }
+                    });
+                    
+                    outE.innerHTML = html;
+                    if (isNearBottom) outE.scrollTop = outE.scrollHeight;
+                } else {
+                    outE.innerHTML = "<div style='opacity: 0.5; text-align: center; padding: 2rem;'>Chat is empty or loading...</div>";
+                }
+            } catch (e) { console.error("DOM Poll Error:", e); }
+
+            setTimeout(pollHistory, 500);
+        }
+
+        pollHistory();
+    </script>
+</body>
+</html>
