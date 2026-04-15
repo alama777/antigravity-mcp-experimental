@@ -3,13 +3,9 @@ import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { ListToolsRequestSchema, CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { join } from 'path';
-import { readFileSync, watch } from 'fs';
-import { tmpdir } from 'os';
-
 async function main() {
     try {
-        let host = "localhost";
+        let host = "127.0.0.1";
         let port = "3033";
         let client = null;
         let sseTransport = null;
@@ -33,31 +29,15 @@ async function main() {
             }
         }
 
-        try {
-            const cfgPath = join(tmpdir(), 'antigravity-mcp-config.json');
-            const cfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
-            if (cfg.host) host = cfg.host;
-            if (cfg.port) port = cfg.port;
-            
-            // Watch for hot-reloads of the configuration
-            let watchTimeout;
-            watch(cfgPath, (eventType) => {
-                if (watchTimeout) return;
-                watchTimeout = setTimeout(async () => {
-                    try {
-                        const updatedCfg = JSON.parse(readFileSync(cfgPath, 'utf8'));
-                        if (updatedCfg.port != port || updatedCfg.host != host) {
-                            console.error(`[Proxy] Config changed to ${updatedCfg.host}:${updatedCfg.port}. Reconnecting...`);
-                            host = updatedCfg.host;
-                            port = updatedCfg.port;
-                            await connectToPlugin(host, port);
-                        }
-                    } catch (err) {} 
-                    watchTimeout = null;
-                }, 100); // debounce
-            });
-        } catch (e) {
-            // Fallback to defaults
+        const args = process.argv.slice(2);
+        for (let i = 0; i < args.length; i++) {
+            if (args[i] === '--host' && args[i + 1]) {
+                host = args[i + 1];
+                i++;
+            } else if (args[i] === '--port' && args[i + 1]) {
+                port = args[i + 1];
+                i++;
+            }
         }
 
         // Initial connection

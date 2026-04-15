@@ -113,7 +113,7 @@ You can customize the extension behavior by tweaking the following settings in y
 
 | Setting | Description | Default Value |
 | --- | --- | --- |
-| `antigravity-mcp.host` | Host on which the HTTP MCP & dashboard server binds | `localhost` |
+| `antigravity-mcp.host` | Host on which the HTTP MCP & dashboard server binds | `127.0.0.1` |
 | `antigravity-mcp.port` | Port on which the HTTP MCP & dashboard server runs | `3033` |
 | `antigravity-mcp.cdpHost` | Host for the Antigravity CDP (Chrome DevTools Protocol) | `localhost` |
 | `antigravity-mcp.cdpPort` | Port for the CDP connection (the debugging port exposed by the Antigravity IDE)| `9222` |
@@ -122,7 +122,7 @@ You can customize the extension behavior by tweaking the following settings in y
 > **Restart Required:** To ensure that your new settings are applied reliably, and **after installing a new release** of the extension, please **restart the Antigravity IDE**.
 
 > [!TIP]
-> **Troubleshooting Settings:** If the `AntigravityMCP` server shows errors in the IDE's MCP settings panel (which can happen after modifying settings or updating the extension), try toggling it **OFF and then ON again**. This forces the IDE to cleanly re-read the updated configuration. Additionally, you can always monitor detailed system messages and diagnostic logs from the extension by checking the IDE's **Output** panel (specifically, the **"Antigravity MCP"** channel).
+> **Troubleshooting Settings:** If the `AntigravityMCP` server shows errors in the IDE's MCP settings panel (which can happen after modifying settings or updating the extension), try toggling it **OFF and then ON again**. This forces the IDE to cleanly re-read the updated configuration. The extension correctly respects the `disabled: true` state in `mcp_config.json`, meaning if you intentionally turn off the proxy, the extension will preserve your preference and not forcefully re-enable it. Additionally, you can always monitor detailed system messages and diagnostic logs from the extension by checking the IDE's **Output** panel (specifically, the **"Antigravity MCP"** channel).
 
 ## 🏰 Architecture & Development
 

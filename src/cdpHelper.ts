@@ -16,7 +16,7 @@ export interface ChatDOMResult {
     error?: string;
 }
 
-export async function fetchChatDOM(cdpHost: string, cdpPort: number, dashboardHost: string = 'localhost', dashboardPort: number = 3033): Promise<ChatDOMResult> {
+export async function fetchChatDOM(cdpHost: string, cdpPort: number, dashboardHost: string = '127.0.0.1', dashboardPort: number = 3033): Promise<ChatDOMResult> {
     let targets: any[];
     try {
         const response = await fetch(`http://${cdpHost}:${cdpPort}/json`);

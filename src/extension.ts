@@ -19,22 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
         if (outputChannel) outputChannel.appendLine(`[System Error] Unhandled Rejection: ${reason}`);
     });
 
-    function syncConfigurationToDisk() {
-        const config = vscode.workspace.getConfiguration('antigravity-mcp');
-        const port = config.get<number>('port') || 3033;
-        const host = config.get<string>('host') || 'localhost';
-
-        const configData = { host, port };
-        const configPath = path.join(os.tmpdir(), 'antigravity-mcp-config.json');
-        try {
-            fs.writeFileSync(configPath, JSON.stringify(configData, null, 2), 'utf-8');
-            if (outputChannel) outputChannel.appendLine(`[System] Synced settings to ${configPath}`);
-        } catch (e: any) {
-            if (outputChannel) outputChannel.appendLine(`[System Error] Failed to write config: ${e.message}`);
-        }
-    }
-
-    syncConfigurationToDisk();
 
     function registerMcpServer() {
         try {
@@ -53,12 +37,21 @@ export function activate(context: vscode.ExtensionContext) {
             if (!config.mcpServers) config.mcpServers = {};
 
             const serverName = "AntigravityMCP";
-            const currentMcpStr = JSON.stringify(config.mcpServers[serverName] || {});
+            const existingServerConfig = config.mcpServers[serverName] || {};
+            const currentMcpStr = JSON.stringify(existingServerConfig);
 
-            const newMcpConfig = {
+            const mcpSettings = vscode.workspace.getConfiguration('antigravity-mcp');
+            const port = mcpSettings.get<number>('port') || 3033;
+            const host = mcpSettings.get<string>('host') || '127.0.0.1';
+
+            const newMcpConfig: any = {
                 "command": "node",
-                "args": [proxyPath]
+                "args": [proxyPath, "--host", host, "--port", port.toString()]
             };
+
+            if (existingServerConfig.disabled === true) {
+                newMcpConfig.disabled = true;
+            }
 
             if (currentMcpStr !== JSON.stringify(newMcpConfig)) {
                 config.mcpServers[serverName] = newMcpConfig;
@@ -77,7 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('antigravity-mcp.port') || e.affectsConfiguration('antigravity-mcp.host')) {
-            syncConfigurationToDisk();
+            registerMcpServer();
             if (expressServer) {
                 vscode.commands.executeCommand('antigravity-mcp.stopServer').then(() => {
                     setTimeout(() => {

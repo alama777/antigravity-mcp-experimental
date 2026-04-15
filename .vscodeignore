@@ -10,3 +10,6 @@ package-lock.json
 !README.ru.md
 scripts/**
 builds/**
+archive/**
+temp/**
+dist/*.map
