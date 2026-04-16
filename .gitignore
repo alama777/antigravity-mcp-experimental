@@ -1,9 +1,11 @@
 node_modules/
 dist/
 out/
+archive/
 temp/
 builds/
 .mcp-config.json
 *.log
 .DS_Store
 .vscode/
+.venv/

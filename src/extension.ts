@@ -52,6 +52,9 @@ export function activate(context: vscode.ExtensionContext) {
             if (existingServerConfig.disabled === true) {
                 newMcpConfig.disabled = true;
             }
+            if (existingServerConfig.disabledTools !== undefined) {
+                newMcpConfig.disabledTools = existingServerConfig.disabledTools;
+            }
 
             if (currentMcpStr !== JSON.stringify(newMcpConfig)) {
                 config.mcpServers[serverName] = newMcpConfig;
