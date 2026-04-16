@@ -2,7 +2,7 @@
   "name": "antigravity-mcp-experimental",
   "displayName": "Antigravity MCP Server (Experimental)",
   "description": "An experimental built-in MCP server for Antigravity AI interactions over HTTP SSE.",
-  "version": "0.0.5-dev",
+  "version": "0.0.5",
   "icon": "images/icon.png",
   "publisher": "alama777",
   "license": "MIT",
@@ -69,7 +69,7 @@
     "compile": "tsc -p ./",
     "test": "vitest run",
     "watch": "tsc -watch -p ./",
-    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.5-dev.vsix",
+    "package": "npx -y @vscode/vsce package --no-yarn --out builds/antigravity-mcp-experimental-0.0.5.vsix",
     "deploy": "node scripts/deploy.js"
   },
   "dependencies": {

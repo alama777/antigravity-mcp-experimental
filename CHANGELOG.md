@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.5] - 2026-04-16
+### Changed
+- Refactored MCP configuration to use standard CLI arguments (stateless operation).
+- Ensured preservation of `disabled` and `disabledTools` fields during config updates.
+- Modularized Express server and improved network stability (IPv4/IPv6 support).
+- Fixed telemetry dashboard JavaScript errors.
+- Updated project documentation and internal architecture.
+
 ## [0.0.4] - 2026-04-13
 ### Added
 - Added presentation images and examples to `README.md`.

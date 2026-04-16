@@ -1,3 +1,4 @@
+.venv/**
 .vscode/**
 .vscode-test/**
 src/**
@@ -8,6 +9,8 @@ package-lock.json
 *.md
 !README.md
 !README.ru.md
+!CHANGELOG.md
+!CHANGELOG.ru.md
 scripts/**
 builds/**
 archive/**
