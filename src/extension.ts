@@ -8,6 +8,42 @@ import { createExpressApp, AppContext } from './appBuilder';
 let expressServer: http.Server | null = null;
 let outputChannel: vscode.OutputChannel;
 
+/**
+ * Safely writes a JSON configuration file using an atomic rename operation.
+ * Includes a retry mechanism to handle intermittent Windows file locking (EPERM/EBUSY)
+ * which can occur if another process (e.g. an MCP client) is concurrently reading the file.
+ */
+function atomicWriteJsonFile(configPath: string, data: any): void {
+    fs.mkdirSync(path.dirname(configPath), { recursive: true });
+    const tempConfigPath = configPath + `.${Date.now()}.tmp`;
+    fs.writeFileSync(tempConfigPath, JSON.stringify(data, null, 2), 'utf8');
+    
+    let renamed = false;
+    let lastErr: any;
+    // Retry up to 5 times to bypass temporary read locks
+    for (let i = 0; i < 5; i++) {
+        try {
+            fs.renameSync(tempConfigPath, configPath);
+            renamed = true;
+            break;
+        } catch (err: any) {
+            lastErr = err;
+            if (err.code === 'EPERM' || err.code === 'EBUSY' || err.code === 'EACCES') {
+                const start = Date.now();
+                // Synchronous wait for 10ms before retrying to prevent blocking the event loop too long
+                while (Date.now() - start < 10) { /* wait */ }
+            } else {
+                break;
+            }
+        }
+    }
+    
+    if (!renamed) {
+        try { fs.unlinkSync(tempConfigPath); } catch (e) {} // Clean up the orphaned temp file
+        throw lastErr || new Error(`Failed to safely write ${configPath} due to consecutive file locks`);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     outputChannel = vscode.window.createOutputChannel('Antigravity MCP');
     outputChannel.appendLine('[System] Extension activated. Merged Rev 30 loaded.');
@@ -20,6 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
 
+    /**
+     * Dynamically registers the Antigravity proxy as an MCP server.
+     * This automatically injects the proxy configuration into the global MCP settings file,
+     * allowing external agents (like Roo-Code or Claude Desktop) to connect seamlessly.
+     */
     function registerMcpServer() {
         try {
             const proxyPath = path.join(context.extensionPath, 'bin', 'stdio-proxy.mjs');
@@ -58,8 +99,11 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (currentMcpStr !== JSON.stringify(newMcpConfig)) {
                 config.mcpServers[serverName] = newMcpConfig;
-                fs.mkdirSync(path.dirname(configPath), { recursive: true });
-                fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+                
+                // Save the configuration atomically to prevent race conditions
+                // where the MCP client reads a partially written or empty file.
+                atomicWriteJsonFile(configPath, config);
+                
                 if (outputChannel) outputChannel.appendLine(`[System] Successfully registered MCP server dynamically.`);
             } else {
                 if (outputChannel) outputChannel.appendLine(`[System] MCP server is already correctly registered.`);
